@@ -4,6 +4,7 @@ extension BlendMode: @retroactive Identifiable {
   public var id: Self { self }
 }
 
+@available(macCatalyst 17.0, *)
 @main
 struct MyApp: App {
 
@@ -43,16 +44,31 @@ struct MyApp: App {
   @State var fgmode: BlendMode = .normal
     var body: some Scene {
       WindowGroup {
+        NavigationSplitView {
+            VStack(alignment: .center) {
+              ColorPaletteView(color: $fg)
+                .padding()
+              BGPicker(item: $fgitem)
+            }
+            .fixedSize(horizontal: true, vertical: true)
+            .padding()
+            Divider()
+            VStack(alignment: .center) {
+              ColorPaletteView(color: $bg)
+                .padding()
+              BGPicker(item: $bgitem)
+            }
+            .fixedSize(horizontal: true, vertical: true)
+            .padding()
+
+          Spacer()
+        } detail: {
           Grid {
             ForEach(0..<3) { x in
               GridRow(alignment: .bottom) {
                 ForEach(casesSets[x], id: \.0) { pair in
                   VStack {
                     Text("")
-                    Text(pair.1)
-                      .font(.caption)
-                      .monospaced()
-                      .lineLimit(2, reservesSpace: true)
                     ZStack {
                       switch bgitem {
                       case .circle:
@@ -86,6 +102,10 @@ struct MyApp: App {
                           .blendMode(pair.0)
                       }
                     }
+                    Text(pair.1)
+                      .font(.caption)
+                      .monospaced()
+                      .lineLimit(2, reservesSpace: true)
                   }
                 }
               }
@@ -98,30 +118,7 @@ struct MyApp: App {
             .shadow(radius: 5)
           }
           .padding()
-          .safeAreaInset(edge: .top) {
-            HStack {
-              VStack {
-                ColorPicker("FG Color", selection: $fg)
-                  .padding()
-                BGPicker(item: $fgitem)
-              }
-              .padding()
-              Divider()
-              VStack {
-                ColorPicker("BG Color", selection: $bg)
-                  .padding()
-                BGPicker(item: $bgitem)
-              }
-              .padding()
-            }
-            .padding(.vertical)
-            .background {
-              Rectangle()
-              .fill(.thickMaterial)
-              .shadow(radius: 5)
-            }
-            .fixedSize(horizontal: false, vertical: true)
-          }
+        }
       }
     }
 }
