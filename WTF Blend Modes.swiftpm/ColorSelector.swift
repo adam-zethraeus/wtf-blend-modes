@@ -7,8 +7,9 @@
 
 
 import SwiftUI
-import SwiftUICore
+
 @available(macCatalyst 17.0, *)
+@available(iOS 17.0, *)
 public struct ColorSelector: View {
   @ObservedObject var viewModel: ColorSelectionModel = .init()
   @Environment(\.pointSize) private var pointSize
@@ -261,6 +262,7 @@ public let defaultSwatchColors: [UIColor] = [
 ]
 
 @available(macCatalyst 17.0, *)
+@available(iOS 17.0, *)
 public struct Swatch: View {
   @Environment(\.swatchColors) private var swatchColors
   @State private var width: CGFloat = 0
@@ -355,6 +357,7 @@ class ColorSelectionModel: ObservableObject {
 }
 
 @available(macCatalyst 17.0, *)
+@available(iOS 17.0, *)
 public struct Sketch: View {
   @ObservedObject var viewModel: ColorSelectionModel = .init()
   @Environment(\.pointSize) private var pointSize
@@ -752,15 +755,21 @@ extension UIColor {
 }
 
 @available(macCatalyst 17.0, *)
+@available(iOS 17.0, *)
 public struct ColorSelection: View {
-  @State var hue: CGFloat = 1.0
-  @State var saturation: CGFloat = 1.0
-  @State var brightness: CGFloat = 1.0
-  @State var alpha: CGFloat = 1.0
+  @State var hue: CGFloat
+  @State var saturation: CGFloat
+  @State var brightness: CGFloat
+  @State var alpha: CGFloat
 
   @Binding var color: Color
   public init(color: Binding<Color>) {
     _color = color
+
+    hue = color.wrappedValue.hue
+    saturation = color.wrappedValue.saturation
+    brightness = color.wrappedValue.brightness
+    alpha = color.wrappedValue.alpha
   }
   public var body: some View {
     VStack {
@@ -785,7 +794,7 @@ public struct ColorSelection: View {
     }
     .font(.caption2)
     .monospaced()
-      .onChange(of: color, initial: true) { _, color in
+      .onChange(of: color, initial: false) { _, color in
         guard color != self.color else { return }
         @State var hue: CGFloat = 1.0
         @State var saturation: CGFloat = 1.0
@@ -821,6 +830,7 @@ public struct ColorSelection: View {
 
 
 @available(macCatalyst 17.0, *)
+@available(iOS 17.0, *)
 public struct ColorPaletteView: View {
   public init(color: Binding<Color>) {
     _color = color
@@ -844,11 +854,20 @@ public struct ColorPaletteView: View {
       .frame(minWidth: 30, minHeight: 30)
     }
     .popover(isPresented: $present) {
-      if #available(macCatalyst 17.0, *) {
-        ColorSelection(color: $color)
-          .frame(minWidth: 200, minHeight: 400)
-      } else {
-        // Fallback on earlier versions
+      if #available(iOS 17.0, *) {
+        NavigationStack {
+          ColorSelection(color: $color)
+            .frame(minWidth: 200, minHeight: 400)
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar {
+              ToolbarItem(placement: .cancellationAction) {
+                Button("", systemImage: "xmark.circle.fill") {
+                  present = false
+                }
+                .tint(.primary)
+              }
+            }
+        }
       }
     }
   }
